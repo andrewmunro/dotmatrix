@@ -18,7 +18,6 @@
     "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "express-ws": "^5.0.2",
-    "pixi.js": "^7.2.1",
     "pixi.js-legacy": "^7.2.1",
     "tsx": "^3.12.5",
     "vite": "^4.2.0",
