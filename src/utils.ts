@@ -1,4 +1,4 @@
-import { Filter } from 'pixi.js-legacy';
+import { Assets, BitmapText, Filter, IBitmapTextStyle } from 'pixi.js-legacy';
 
 export function rgbaToRgb565(rgba: Uint8Array) {
     const length = rgba.length / 4;
@@ -63,3 +63,25 @@ export const dotMatrixFilter = (width: number, height: number) =>
         dotSize: 0.35, // Adjust this value to change the dot size (0.0 - 1.0)
         cellSize: 10 // Adjust this value to change the cell size (in pixels)
     });
+
+
+await Assets.load('silkscreen.fnt');
+await Assets.load('pixel7.fnt');
+
+const textStyle: Partial<IBitmapTextStyle> = {
+    fontName: 'silkscreen',
+    fontSize: 8,
+    tint: 'white',
+    align: 'left',
+    letterSpacing: -1
+};
+
+export const createText = (text: string, tint = 'yellow', font: 'silkscreen'|'pixel7' = 'silkscreen') => {
+    return new BitmapText(text, {
+        ...textStyle,
+        tint,
+        fontName: font,
+        fontSize: font == 'silkscreen' ? 8 : 10,
+        letterSpacing: font == 'silkscreen' ? -1 : 0
+    });
+};

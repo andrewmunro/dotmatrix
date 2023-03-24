@@ -6,6 +6,7 @@ import { scrollingDot } from './views/scrollingDot';
 import { scrollingText } from './views/scrollingText';
 import { gifs } from './views/gifs';
 import { trains } from './views/trains';
+import { clock } from './views/clock';
 
 BaseTexture.defaultOptions.scaleMode = PIXI.SCALE_MODES.NEAREST;
 Program.defaultFragmentPrecision = PIXI.PRECISION.HIGH;
@@ -26,11 +27,12 @@ const renderSprite = new Sprite(renderTexture);
 app.stage.addChild(renderSprite);
 renderSprite.scale.set(10, 10);
 
-// app.stage.filters = [dotMatrixFilter(renderer.width, renderer.height)];
+app.stage.filters = [dotMatrixFilter(renderer.width, renderer.height)];
 
 // app.ticker.add(await gifs(display));
-app.ticker.add(await scrollingText(display));
-app.ticker.add(await trains(display, renderer));
+// app.ticker.add(await scrollingText(display));
+app.ticker.add(await trains(display));
+app.ticker.add(await clock(display));
 app.ticker.maxFPS = 30;
 // app.ticker.add(await scrollingDot(display));
 
@@ -49,7 +51,7 @@ setTimeout(() => {
             const pixels = renderer.extract.pixels(renderTexture);
             const rgb565 = rgbaToRgb565(pixels);
             ws.send(rgb565);
-        }, 33);
+        }, 60);
     };
 
     ws.onmessage = evt => {

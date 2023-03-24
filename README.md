@@ -15,3 +15,6 @@ This setup allows me to quickly iterate on the UI and stream any data directly t
 
 ### Hub75 Matrix View
 <a href="public/demo.gif" title="Demo"><img src="public/demo.gif" alt="Hub75 Matrix Demo" /></a>
+
+### Train times
+<a href="public/train-demo.gif" title="Demo"><img src="public/train-demo.gif" alt="Hub75 Matrix Demo" /></a>
