@@ -39,22 +39,43 @@ app.ticker.add(delta => {
     renderer.render(app.stage);
 });
 
-// Draw to RGB
-setTimeout(() => {
-    // const ws = new WebSocket(`ws://192.168.0.114`);
+let hasDisconnected = false;
+
+const connect = () => {
     const ws = new WebSocket(`ws://${location.host}/ws`);
     ws.onopen = evt => {
         console.log('connected!', evt);
 
-        setInterval(() => {
-            const pixels = renderer.extract.pixels(renderTexture);
-            const rgb565 = rgbaToRgb565(pixels);
-            ws.send(rgb565);
-        }, 1000 * 1 / app.ticker.maxFPS);
+        if (hasDisconnected) {
+            // Force refresh to get new client
+            window.location.reload();
+        } else {
+            setInterval(() => {
+                const pixels = renderer.extract.pixels(renderTexture);
+                const rgb565 = rgbaToRgb565(pixels);
+                ws.send(rgb565);
+            }, 1000 * 1 / app.ticker.maxFPS);
+        }
     };
 
     ws.onmessage = evt => {
         console.log('message!', evt);
     };
+
+    ws.onclose = () => {
+        console.log('websocket closed! refreshing!');
+
+        hasDisconnected = true;
+        
+        setTimeout(() => {
+            connect();
+        }, 1000);
+    };
+}
+
+// Draw to RGB
+setTimeout(() => {
+    connect();
+
 }, 1000);
 
