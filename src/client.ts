@@ -1,12 +1,9 @@
-import * as PIXI from 'pixi.js-legacy';
 import '@pixi/gif';
-import { Assets, BaseTexture, Buffer, Container, DisplayObject, Program, Renderer, RenderTexture, Sprite } from 'pixi.js-legacy';
+import * as PIXI from 'pixi.js-legacy';
+import { BaseTexture, Container, Program, Renderer, RenderTexture, Sprite } from 'pixi.js-legacy';
 import { dotMatrixFilter, rgbaToRgb565 } from './utils';
-import { scrollingDot } from './views/scrollingDot';
-import { scrollingText } from './views/scrollingText';
-import { gifs } from './views/gifs';
-import { trains } from './views/trains';
 import { clock } from './views/clock';
+import { transportScreen } from './views/transportScreen';
 
 BaseTexture.defaultOptions.scaleMode = PIXI.SCALE_MODES.NEAREST;
 Program.defaultFragmentPrecision = PIXI.PRECISION.HIGH;
@@ -16,7 +13,6 @@ const app = new PIXI.Application({
     height: 320,
     resolution: 1,
     forceCanvas: true,
-    // background: 'blue'
 });
 document.body.appendChild(app.view as any);
 
@@ -28,19 +24,22 @@ app.stage.addChild(renderSprite);
 renderSprite.scale.set(10, 10);
 
 app.stage.filters = [dotMatrixFilter(renderer.width, renderer.height)];
-
-// app.ticker.add(await gifs(display));
-// app.ticker.add(await scrollingText(display));
-app.ticker.add(await trains(display));
-app.ticker.add(await clock(display));
 app.ticker.maxFPS = 30;
-// app.ticker.add(await scrollingDot(display));
 
+// Displays
+display.addChild(transportScreen());
+// app.ticker.add((await gifs(display)).update);
+// app.ticker.add((await scrollingText(display)).update);
+// app.ticker.add(await scrollingDot(display));
+app.ticker.add((await clock(display)).update);
+
+// Render
 app.ticker.add(delta => {
     renderer.render(display, { renderTexture });
     renderer.render(app.stage);
 });
 
+// Draw to RGB
 setTimeout(() => {
     // const ws = new WebSocket(`ws://192.168.0.114`);
     const ws = new WebSocket(`ws://${location.host}/ws`);
@@ -51,7 +50,7 @@ setTimeout(() => {
             const pixels = renderer.extract.pixels(renderTexture);
             const rgb565 = rgbaToRgb565(pixels);
             ws.send(rgb565);
-        }, 60);
+        }, 1000 * 1 / 15);
     };
 
     ws.onmessage = evt => {

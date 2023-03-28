@@ -8,8 +8,11 @@ export const scrollingDot = async (parent: Container) => {
 
     parent.addChild(graphics);
 
-    return async (dt: number) => {
-        graphics.position.y += 0.4;
-        if (graphics.position.y > 31) graphics.position.y = 0;
+    return {
+        update: (dt: number) => {
+            graphics.position.y += 0.4;
+            if (graphics.position.y > 31) graphics.position.y = 0;
+        },
+        destroy: async (dt: number) => {}
     };
 };

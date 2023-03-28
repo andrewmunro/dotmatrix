@@ -14,7 +14,8 @@ export const gifs = async (parent: Container) => {
 
     parent.addChild(image, image2);
 
-    return async (dt: number) => {
-        
-    }
+    return {
+        update: (dt: number) => {},
+        destroy: async (dt: number) => {}
+    };
 }

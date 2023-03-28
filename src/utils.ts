@@ -77,6 +77,8 @@ const textStyle: Partial<IBitmapTextStyle> = {
 };
 
 export const createText = (text: string, tint = 'yellow', font: 'silkscreen'|'pixel7' = 'silkscreen') => {
+    text = text.replaceAll(':', ' :');
+
     return new BitmapText(text, {
         ...textStyle,
         tint,

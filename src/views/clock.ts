@@ -14,11 +14,13 @@ export const clock = async (parent: Container) => {
     bg.beginFill(0x000000);
     bg.drawRect(0, 0, 36, 10);
 
-
     clock.addChild(bg, time);
 
-    return async (dt: number) => {
-        const now = new Date();
-        time.text = `${new Date().toTimeString().split(' ')[0]}`;
+    return {
+        update: (dt: number) => {
+            const now = new Date();
+            time.text = `${new Date().toTimeString().split(' ')[0]}`;
+        },
+        destroy: async (dt: number) => {}
     };
 };

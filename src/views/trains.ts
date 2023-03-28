@@ -32,12 +32,9 @@ const formatTrainRow = (train: Train) => {
     const dest = createText(train.destination, 'orange');
     dest.x = platform.x + 10;
     const arriving = train.arrives.date > train.scheduled.date ? createText(`Exp ${train.arrives.time}`, 'red') : createText(`On time`, 'green')
-    arriving.x = train.arrives.date > train.scheduled.date ? 89 : 89;
+    arriving.x = 89;
 
-	row.addChild(scheduled);
-    row.addChild(platform);
-    row.addChild(dest);
-    row.addChild(arriving);
+	row.addChild(scheduled, platform, dest, arriving);
 
 	return row;
 };
@@ -62,23 +59,22 @@ export const trains = async (parent: Container) => {
 	let trains = await fetchTrains();
     parent.addChild(trains);
 
-    setInterval(async () => {
-        let t = await fetchTrains();
-        parent.removeChild(trains);
-        parent.addChild(trains = t);
-    }, 10 * 1000);
-
     const icon = new Text('🚅🚃🚃🚃', {
         fontSize: 8,
     });
     icon.x = 132;
-    icon.y = 22;
-    parent.addChild(icon);
+    icon.y = 20;
+    trains.addChild(icon);
 
-    gsap.to(icon, {
+    const tween = gsap.to(icon, {
         x: -50, duration: 10, repeat: -1, yoyo: false, repeatDelay: 0, ease: 'linear'
-    })
+    });
 
-	return async (dt: number) => {
-	};
+    return {
+        update: (dt: number) => {},
+        destroy: async (dt: number) => {
+            tween.kill();
+            parent.removeChild(trains);
+        }
+    };
 };

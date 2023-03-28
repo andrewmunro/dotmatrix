@@ -3,7 +3,7 @@ import { OPEN, WebSocket } from "ws";
 let url = 'ws://192.168.0.114'
 let ws: WebSocket;
 
-const connect = () => {
+export const connect = () => {
 	ws = new WebSocket(url);
 
 	ws.onclose = (e) => {
@@ -18,12 +18,12 @@ const connect = () => {
 		ws.close();
 	};
 
-    return ws;
+    return {
+		getWs: () => ws
+	};
 }
 
-const updateURL = (newUrl: string) => {
+export const updateURL = (newUrl: string) => {
     url = newUrl;
     if (ws.readyState == OPEN) ws.close();
 }
-
-export {connect, updateURL}

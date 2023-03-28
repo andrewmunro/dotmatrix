@@ -26,9 +26,12 @@ export const scrollingText = async (parent: Container, content = '✈️🚌🚍
     text.y = 32 / 2 + 5;
 
     parent.addChild(text);
-
-    return async (dt: number) => {
-        text.position.x -= 1;
-        if (text.position.x < -text.width / 2) text.position.x = 128 + text.width / 2;
+ 
+    return {
+        update: (dt: number) => {
+            text.position.x -= 1;
+            if (text.position.x < -text.width / 2) text.position.x = 128 + text.width / 2;
+        },
+        destroy: async (dt: number) => {}
     };
 };
