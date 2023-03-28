@@ -1,6 +1,6 @@
 import { OPEN, WebSocket } from "ws";
 
-let url = 'ws://192.168.0.114'
+let url = process.env.RGB_WS ?? 'ws://192.168.0.114';
 let ws: WebSocket;
 
 export const connect = () => {
