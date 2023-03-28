@@ -1,5 +1,5 @@
 import express from 'express';
-import { OPEN, WebSocketServer } from 'ws';
+import { OPEN, WebSocket, WebSocketServer } from 'ws';
 import { connect } from './ws/rgbWebsocketClient';
 import { webSocketServer } from './ws/websocketServer';
 import * as dotenv from 'dotenv';
@@ -15,11 +15,26 @@ const wss = webSocketServer(app);
 const RTTAuth = Buffer.from(`${process.env.RTT_USER}:${process.env.RTT_PASS}`).toString('base64');
 const FirstBusAuth = process.env.FIRST_BUS_API_KEY;
 
+const sockets: WebSocket[] = [];
+
 wss.on('connection', (socket, req) => {
+	sockets.push(socket);
+
 	socket.on('message', (data, isBinary) => {
-		if (isBinary && rgb.getWs().readyState == OPEN) {
-			rgb.getWs().send(data as ArrayBufferView);
-		}
+		// Ensure is binary data
+		if (!isBinary) return;
+
+		// Ensure only first connected WS data is forwarded to RGB screen
+		if (socket != sockets[0]) return;
+
+		// Ensure we are connected to RGB
+		if (rgb.getWs().readyState != OPEN) return;
+
+		rgb.getWs().send(data as ArrayBufferView);
+	});
+
+	socket.once('close', () => {
+		sockets.splice(sockets.indexOf(socket), 1);
 	});
 });
 
