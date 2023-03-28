@@ -118,7 +118,7 @@ app.get('/api/flights/arrivals', async (req, res) => {
 			date: new Date(fl.scheduled_time),
 		},
 		origin: fl.airport_name,
-		message: fl.message ? fl.message.replace('Expected', 'exp').replace('Landed', 'lnd') : null,
+		message: fl.message ? fl.message.replace('Expected', 'exp').replace('Landed', 'lnd').replace('Now ', '') : null,
 		status: fl.status,
 	})).filter(fl => {
 		if (fl.status != 'LND') return true;
@@ -127,8 +127,6 @@ app.get('/api/flights/arrivals', async (req, res) => {
 		const date = new Date();
 		date.setHours(timeString.split(":")[0]);
 		date.setMinutes(timeString.split(":")[1]);
-
-		console.log(new Date(), date, new Date().getTime() - date.getTime(), new Date().getTime() - date.getTime() <= 1000 * 60 * 5);
 
 		return new Date().getTime() - date.getTime() <= 1000 * 60 * 5;
 	});

@@ -25,17 +25,17 @@ const formatBusRow = (bus: Bus) => {
     line.x = scheduled.x + 25;
 
     if (bus.occupancy) {
-        const seatsIcon = new Text('💺', { fontSize: 5 });
+        const seatsIcon = new Text('💺', { fontSize: 4 });
         seatsIcon.x = line.x + 22;
-        seatsIcon.y = 1;
+        seatsIcon.y = 2;
         const seats = createText(`${bus.occupancy.capacity - bus.occupancy.occupied} free`, 'orange');
         seats.x = seatsIcon.x + 6;
 
         row.addChild(seatsIcon, seats);
     }
 
-    const arriving = bus.expectedArrivalMins != null ? createText(bus.expectedArrivalMins > 0 ? bus.expectedArrivalMins + ' MINS' : 'DUE', 'green') : createText(bus.scheduled.time, 'yellow')
-    arriving.x = 89;
+    const arriving = bus.expectedArrivalMins != null ? createText(bus.expectedArrivalMins > 0 ? bus.expectedArrivalMins + ' MINS' : 'DUE', 'green') : createText(bus.scheduled.time, 'orange')
+    arriving.x = 95;
 
 	row.addChild(scheduled, line, arriving);
 
@@ -62,8 +62,8 @@ export const buses = async (parent: Container, stop: BusStop = 'kirkstall_lights
 	let buses = await fetchBuses(stop);
     parent.addChild(buses);
 
-    const icon = new Text('🚌  🚌', {
-        fontSize: 8,
+    const icon = new Text('🚌 🚎', {
+        fontSize: 7,
     });
     icon.x = 132;
     icon.y = 20;

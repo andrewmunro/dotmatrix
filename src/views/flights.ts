@@ -28,7 +28,7 @@ const formatFlightRow = (flight: Flight) => {
     row.addChild(scheduled, origin);
 
     if (flight.message) {
-        const message = createText(flight.message, 'red')
+        const message = createText(flight.message, flight.message.includes('lnd') ? 'green' : 'red')
         message.x = 89;
         row.addChild(message);
     }
@@ -56,12 +56,14 @@ export const flights = async (parent: Container) => {
 	let flights = await fetchFlights();
     parent.addChild(flights);
 
-    const icon = new Text('🛬', {
-        fontSize: 8,
+    const icon = new Text('🚁', {
+        fontSize: 7,
     });
     icon.x = 132;
-    icon.y = 20;
-    icon.scale.x = -1;
+    icon.y = 19;
+    // icon.anchor.x = icon.anchor.y = 0.5;
+    // icon.rotation = 5;
+    // icon.scale.x = -1;
     flights.addChild(icon);
 
     const tween = gsap.to(icon, {

@@ -37,19 +37,7 @@ void onWebSocketEvent(uint8_t client_num, WStype_t type, uint8_t* payload, size_
 
     case WStype_BIN:
       {
-          // Check that the payload length is a multiple of 2
-          if (length % 2 != 0) {
-            Serial.println("Error: Unexpected payload length");
-          }
-          
-          // Iterate over the uint16 array in the binary payload
           uint16_t* uint16_data = reinterpret_cast<uint16_t*>(payload);
-          size_t num_uint16_values = length / 2;
-          for (size_t i = 0; i < num_uint16_values; i++) {
-            uint16_t value;
-            memcpy(&value, uint16_data + i, sizeof(value));
-          }
-
           dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
 
           break;

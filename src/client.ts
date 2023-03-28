@@ -50,7 +50,7 @@ setTimeout(() => {
             const pixels = renderer.extract.pixels(renderTexture);
             const rgb565 = rgbaToRgb565(pixels);
             ws.send(rgb565);
-        }, 1000 * 1 / 15);
+        }, 1000 * 1 / app.ticker.maxFPS);
     };
 
     ws.onmessage = evt => {

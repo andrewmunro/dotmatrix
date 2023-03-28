@@ -59,8 +59,8 @@ export const trains = async (parent: Container) => {
 	let trains = await fetchTrains();
     parent.addChild(trains);
 
-    const icon = new Text('🚅🚃🚃🚃', {
-        fontSize: 8,
+    const icon = new Text('🚂🚃🚃🚃', {
+        fontSize: 7,
     });
     icon.x = 132;
     icon.y = 20;
