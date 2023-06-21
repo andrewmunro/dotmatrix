@@ -7,9 +7,9 @@ const interval = 1000 * 10;
 
 const getScreen = async function* (parent: Container) {
     while (true) {
-        yield await trains(parent);
         yield await buses(parent, 'kirkstall_lights');
         yield await buses(parent, 'kirkstall_lane');
+        yield await trains(parent);
         yield await flights(parent);
     }
 }

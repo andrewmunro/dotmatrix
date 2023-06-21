@@ -1,6 +1,5 @@
 import express from 'express';
 import { OPEN, WebSocket, WebSocketServer } from 'ws';
-import { connect } from './ws/rgbWebsocketClient';
 import { webSocketServer } from './ws/websocketServer';
 import * as dotenv from 'dotenv';
 import fetch from 'node-fetch';
@@ -10,31 +9,50 @@ dotenv.config();
 process.env.TZ = 'Europe/London';
 
 const app = express();
-const rgb = connect();
-const wss = webSocketServer(app);
+const wssPub = webSocketServer(app, '/pub');
+const wssSub = webSocketServer(app, '/sub');
 const RTTAuth = Buffer.from(`${process.env.RTT_USER}:${process.env.RTT_PASS}`).toString('base64');
 const FirstBusAuth = process.env.FIRST_BUS_API_KEY;
 
-const sockets: WebSocket[] = [];
+const pubSockets: WebSocket[] = [];
+const subSockets: WebSocket[] = [];
 
-wss.on('connection', (socket, req) => {
-	sockets.push(socket);
+wssPub.on('connection', (socket, req) => {
+	pubSockets.push(socket);
+	console.log('new publisher');
 
 	socket.on('message', (data, isBinary) => {
 		// Ensure is binary data
 		if (!isBinary) return;
 
+		// TODO figure out better solution
 		// Ensure only first connected WS data is forwarded to RGB screen
-		if (socket != sockets[0]) return;
+		if (socket != pubSockets[0]) return;
 
-		// Ensure we are connected to RGB
-		if (rgb.getWs().readyState != OPEN) return;
-
-		rgb.getWs().send(data as ArrayBufferView);
+		// Echo data back to sub sockets
+		for (const sub of subSockets) {
+			sub.send(data);
+		}
 	});
 
 	socket.once('close', () => {
-		sockets.splice(sockets.indexOf(socket), 1);
+		pubSockets.splice(pubSockets.indexOf(socket), 1);
+		console.log('publisher disconnected');
+	});
+});
+
+wssSub.on('connection', (socket, req) => {
+	subSockets.push(socket);
+	console.log('new subscriber');
+
+	socket.on('message', (data, isBinary) => {
+		// Ensure is binary data
+		console.log("message from sub", data);
+	});
+
+	socket.once('close', () => {
+		subSockets.splice(subSockets.indexOf(socket), 1);
+		console.log('subscriber disconnected');
 	});
 });
 

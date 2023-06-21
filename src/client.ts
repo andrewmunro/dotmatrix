@@ -42,7 +42,7 @@ app.ticker.add(delta => {
 let hasDisconnected = false;
 
 const connect = () => {
-    const ws = new WebSocket(`ws://${location.host}/ws`);
+    const ws = new WebSocket(`ws://${location.host}/pub`);
     ws.onopen = evt => {
         console.log('connected!', evt);
 
