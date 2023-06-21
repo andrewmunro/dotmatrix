@@ -28,3 +28,23 @@ jobs:
         with:
           push: true
           tags: ghcr.io/${{ github.repository }}:${{ env.TAG }}
+
+      - name: deploy-dev
+        uses: th0th/rancher-redeploy-workload@v0.9
+        env:
+          RANCHER_BEARER_TOKEN: ${{ secrets.RANCHER_BEARER_TOKEN }}
+          RANCHER_URL: 'https://rancher.mun.sh'
+          RANCHER_CLUSTER_ID: 'local'
+          RANCHER_PROJECT_ID: 'p-vdwsg'
+          RANCHER_NAMESPACE: 'default'
+          RANCHER_WORKLOADS: 'rgb'
+
+      - name: deploy-dev
+        uses: th0th/rancher-redeploy-workload@v0.9
+        env:
+          RANCHER_BEARER_TOKEN: ${{ secrets.RANCHER_BEARER_TOKEN }}
+          RANCHER_URL: 'https://rancher.mun.sh'
+          RANCHER_CLUSTER_ID: 'local'
+          RANCHER_PROJECT_ID: 'p-vdwsg'
+          RANCHER_NAMESPACE: 'default'
+          RANCHER_WORKLOADS: 'rgb-browser'
