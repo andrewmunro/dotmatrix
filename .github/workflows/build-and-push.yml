@@ -26,16 +26,6 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.GITHUB_TOKEN }}
 
-            - uses: oven-sh/setup-bun@v1
-              with:
-                  bun-version: latest
-
-            - name: Install deps
-              run: bun install
-
-            - name: Build
-              run: bun run build
-
             - name: Build and push Docker image
               uses: docker/build-push-action@v4
               with:
