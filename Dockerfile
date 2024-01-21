@@ -1,8 +1,7 @@
-FROM node:16
+FROM oven/bun
 
 COPY . /app
 WORKDIR /app
 
-RUN yarn
-
-CMD [ "yarn", "start" ]
+EXPOSE 3000
+CMD [ "bun", "src/server.ts" ]
