@@ -14,6 +14,8 @@ const randomId = () => {
 	return Math.random().toString(36).substring(2, 7);
 };
 
+let latestFrame: Buffer | null = null;
+
 const app = bunExpress({
 	websocket: {
 		open(ws) {
@@ -38,10 +40,7 @@ const app = bunExpress({
 				// Ensure only first connected WS data is forwarded to RGB screen
 				if (ws.data.id != pubSockets[0].data.id) return;
 
-				// Echo data back to sub sockets
-				for (const sub of subSockets) {
-					sub.send(message);
-				}
+				latestFrame = message;
 			}
 
 			if (ws.data.url.pathname == '/sub') {
@@ -62,6 +61,17 @@ const app = bunExpress({
 		drain(ws) {}
 	}
 } as WebSocketServeOptions<WebSocketData> as any);
+
+const sendInterval = process.env.SEND_INTERVAL ? parseInt(process.env.SEND_INTERVAL) : 500;
+
+// Throttle updates to RGB screen
+setInterval(() => {
+	// Echo data back to sub sockets
+	if (latestFrame == null) return;
+	for (const sub of subSockets) {
+		sub.send(latestFrame);
+	}
+}, sendInterval);
 
 const RTTAuth = Buffer.from(`${process.env.RTT_USER}:${process.env.RTT_PASS}`).toString('base64');
 const FirstBusAuth = process.env.FIRST_BUS_API_KEY;
