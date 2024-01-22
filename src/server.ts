@@ -108,6 +108,11 @@ app.get('/api/train/:station', async (req, res) => {
 		};
 	};
 
+	if (!data?.services) {
+		res.json([]);
+		return;
+	}
+
 	// https://www.realtimetrains.co.uk/about/developer/pull/docs/locationlist/
 	let formatted = data.services.map((train: any) => ({
 		scheduled: formatDate(train.locationDetail.gbttBookedArrival),

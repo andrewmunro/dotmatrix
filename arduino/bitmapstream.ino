@@ -7,8 +7,13 @@
 #define PANEL_HEIGHT 32  // Panel height of 64 will required PIN_E to be defined.
 #define PANELS_NUMBER 2  // Number of chained panels, if just a single panel, obviously set to 1
 #define PIN_E 32
+#define E_PIN_DEFAULT 18
 #define PANE_WIDTH PANEL_WIDTH * PANELS_NUMBER
 #define PANE_HEIGHT PANEL_HEIGHT
+#define useWifiManager 0
+
+const char* wifiSsid = "xxx";
+const char* wifiPass = "xxx";
 
 const char* websockets_connection_string = "ws://rgb.mun.sh/sub"; //Enter server adress
 using namespace websockets;
@@ -17,7 +22,6 @@ MatrixPanel_I2S_DMA* dma_display;
 WebsocketsClient client;
 
 void onMessageCallback(WebsocketsMessage message) {
-    Serial.print("Got Message");
     uint16_t* uint16_data = (uint16_t *) message.c_str();
     dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
 }
@@ -54,15 +58,18 @@ void setup() {
   mxconfig.mx_height = PANEL_HEIGHT;      // we have 64 pix heigh panels
   mxconfig.chain_length = PANELS_NUMBER;  // we have 2 panels chained
   mxconfig.gpio.e = PIN_E;                // we MUST assign pin e to some free pin on a board to drive 64 pix height panels with 1/32 scan
+  // mxconfig.latch_blanking = 4;
+  // mxconfig.i2sspeed = HUB75_I2S_CFG::HZ_10M;
+  mxconfig.clkphase = false;
 
   dma_display = new MatrixPanel_I2S_DMA(mxconfig);
-
-  // let's adjust default brightness to about 75%
-  dma_display->setBrightness8(190);  // range is 0-255, 0 - 0%, 255 - 100%
 
   // Allocate memory and start DMA display
   if (not dma_display->begin())
     Serial.println("****** !KABOOM! I2S memory allocation failed ***********");
+
+  // let's adjust default brightness to about 75%
+  dma_display->setBrightness8(255);  // range is 0-255, 0 - 0%, 255 - 100%
 
   // Write some text
   dma_display->fillScreenRGB888(0, 0, 255);
@@ -71,10 +78,25 @@ void setup() {
   dma_display->print("Connecting...config  wifi at SSID:TrainSignAP");
   delay(1000);
 
-  WiFiManager wm;
   bool connected;
-  connected = wm.autoConnect("TrainSignAP");
 
+  #if useWifiManager == 0
+    // Normal wifi
+    WiFi.mode(WIFI_STA);
+    WiFi.begin(wifiSsid, wifiPass);
+    while (WiFi.status() != WL_CONNECTED) {
+      delay(100);
+      Serial.print(".");
+    }
+
+    connected = true;
+  #else
+    // WIFI MANAGER
+    WiFiManager wm;
+    connected = wm.autoConnect("TrainSignAP");
+  #endif
+
+  
   if(!connected) {
       Serial.println("Failed to connect");
       dma_display->fillScreenRGB888(255, 0, 0);
