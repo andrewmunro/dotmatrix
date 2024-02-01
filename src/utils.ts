@@ -1,4 +1,4 @@
-import { Assets, BitmapText, Filter, IBitmapTextStyle } from 'pixi.js-legacy';
+import { Assets, BitmapText, Filter, IBitmapTextStyle } from './PIXI';
 
 export function rgbaToRgb565(rgba: Uint8Array) {
 	const length = rgba.length / 4;

@@ -5,13 +5,20 @@
   "type": "module",
   "scripts": {
     "start": "vite --host --port 3000",
+    "start-headless": "bun src/client.ts",
     "serv": "bun --watch src/server.ts",
     "build": "vite build",
     "headless": "docker run -d --rm -e TZ=Europe/London -p 9222:9222 zenika/alpine-chrome --no-sandbox --remote-debugging-address=0.0.0.0 --remote-debugging-port=9222 http://mun.sh:3000"
   },
   "license": "MIT",
+  "trustedDependencies": [
+    "@pixi/node",
+    "gl",
+    "node-canvas"
+  ],
   "dependencies": {
     "@pixi/gif": "^2.1.0",
+    "@pixi/node": "^7.3.0",
     "bun-serve-express": "^1.0.4",
     "express": "^4.18.2",
     "gsap": "^3.11.5",

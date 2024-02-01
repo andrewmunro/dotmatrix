@@ -1,26 +1,26 @@
-import { Container, Graphics } from 'pixi.js-legacy';
+import { Container, Graphics } from '../PIXI';
 import { createText } from '../utils';
 
 export const clock = async (parent: Container) => {
-    const clock = new Container();
-    parent.addChild(clock);
-    clock.x = (128 - 30) / 2;
-    clock.y = 22;
+	const clock = new Container();
+	parent.addChild(clock);
+	clock.x = (128 - 30) / 2;
+	clock.y = 22;
 
-    const time = createText('', 'red', 'pixel7');
-    
-    const bg = new Graphics();
-    bg.x = -2;
-    bg.beginFill(0x000000);
-    bg.drawRect(0, 0, 36, 10);
+	const time = createText('', 'red', 'pixel7');
 
-    clock.addChild(bg, time);
+	const bg = new Graphics();
+	bg.x = -2;
+	bg.beginFill(0x000000);
+	bg.drawRect(0, 0, 36, 10);
 
-    return {
-        update: (dt: number) => {
-            const now = new Date();
-            time.text = `${new Date().toTimeString().split(' ')[0]}`;
-        },
-        destroy: async (dt: number) => {}
-    };
+	clock.addChild(bg, time);
+
+	return {
+		update: (dt: number) => {
+			const now = new Date();
+			time.text = `${new Date().toTimeString().split(' ')[0]}`;
+		},
+		destroy: async (dt: number) => {}
+	};
 };

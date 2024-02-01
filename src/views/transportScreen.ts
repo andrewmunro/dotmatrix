@@ -1,4 +1,4 @@
-import { Container } from 'pixi.js-legacy';
+import { Container } from '../PIXI';
 import { buses } from './buses';
 import { flights } from './flights';
 import { trains } from './trains';

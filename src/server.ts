@@ -2,7 +2,6 @@ import { ServerWebSocket, WebSocketServeOptions } from 'bun';
 import bunExpress from 'bun-serve-express';
 import express from 'express';
 
-// import { webSocketServer } from './ws/websocketServer';
 process.env.TZ = 'Europe/London';
 
 type WebSocketData = {
