@@ -27,7 +27,10 @@ const app = bunExpress({
 			}
 
 			if (ws.data.url.pathname == '/sub') {
-				subSockets.push(ws);
+				setTimeout(() => {
+					subSockets.push(ws);
+				}, 500);
+
 				console.log('new subscriber', ws.data.id);
 			}
 		},
@@ -62,7 +65,7 @@ const app = bunExpress({
 	}
 } as WebSocketServeOptions<WebSocketData> as any);
 
-const sendInterval = process.env.SEND_INTERVAL ? parseInt(process.env.SEND_INTERVAL) : 500;
+const sendInterval = process.env.SEND_INTERVAL ? parseInt(process.env.SEND_INTERVAL) : 100;
 
 // Throttle updates to RGB screen
 setInterval(() => {
@@ -200,6 +203,46 @@ app.get('/api/flights/arrivals', async (req, res) => {
 		});
 
 	res.json(flights);
+});
+
+function mapWeatherToEmoji(wmoCode: number): string {
+	switch (wmoCode) {
+		case 0: // Clear sky
+			return '☀️';
+		case 1: // Partly cloudy
+		case 2:
+			return '⛅';
+		case 3: // Cloudy
+			return '☁️';
+		case 10: // Mist
+		case 20: // Fog
+			return '🌫️';
+		case 30: // Drizzle
+		case 40: // Rain
+			return '🌧️';
+		case 60: // Thunderstorm
+			return '⛈️';
+		case 80: // Snow
+			return '❄️';
+		default:
+			return '❓'; // Unknown or unsupported weather condition
+	}
+}
+
+app.get('/api/weather', async (req, res) => {
+	const lat = '53.8193';
+	const long = '-1.5990';
+	const response = await fetch(
+		`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${long}&current=temperature_2m,weather_code`
+	);
+
+	const data = await response.json();
+
+	const temp = Math.round(data.current.temperature_2m);
+	const weatherCode = data.current.weather_code;
+	const emoji = mapWeatherToEmoji(weatherCode);
+
+	res.json({ temp, emoji });
 });
 
 app.listen(3000, () => {

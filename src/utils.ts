@@ -26,6 +26,25 @@ export function rgbaToRgb565(rgba: Uint8Array) {
 	return rgb565;
 }
 
+export function rgb565ToRGBA(rgb565: Uint16Array) {
+	const length = rgb565.length;
+	const rgba = new Uint8Array(length * 4);
+
+	for (let i = 0; i < length; i++) {
+		const rgb = rgb565[i];
+		const r = ((rgb >> 11) * 255) / 31;
+		const g = (((rgb >> 5) & 0x3f) * 255) / 63;
+		const b = ((rgb & 0x1f) * 255) / 31;
+
+		rgba[i * 4] = r;
+		rgba[i * 4 + 1] = g;
+		rgba[i * 4 + 2] = b;
+		rgba[i * 4 + 3] = 255;
+	}
+
+	return rgba;
+}
+
 const dotMatrixShader = `
 precision mediump float;
 

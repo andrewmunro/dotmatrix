@@ -14,11 +14,6 @@ using namespace websockets;
 MatrixPanel_I2S_DMA* dma_display;
 WebsocketsClient client;
 
-void onMessageCallback(WebsocketsMessage message) {
-    uint16_t* uint16_data = (uint16_t *) message.c_str();
-    dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
-}
-
 void onEventsCallback(WebsocketsEvent event, String data) {
     if(event == WebsocketsEvent::ConnectionOpened) {
         Serial.println("Connnection Opened");
@@ -68,9 +63,6 @@ void setup() {
       delay(2000);
       ESP.restart();
   }
-
-  // run callback when messages are received
-  client.onMessage(onMessageCallback);
   
   // run callback when events are occuring
   client.onEvent(onEventsCallback);
@@ -91,5 +83,8 @@ void setup() {
 }
 
 void loop() {
-  client.poll();
+  auto message = client.readBlocking();
+
+  uint16_t* uint16_data = (uint16_t *) message.c_str();
+  dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
 }
