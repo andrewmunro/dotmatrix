@@ -8,6 +8,7 @@ process.env.TZ = 'Europe/London';
 type WebSocketData = {
 	url: URL;
 	id: string;
+	ready: boolean;
 };
 
 const randomId = () => {
@@ -20,6 +21,14 @@ const app = bunExpress({
 	websocket: {
 		open(ws) {
 			ws.data.id = randomId();
+			ws.data.ready = false;
+
+			setTimeout(
+				() => {
+					ws.data.ready = true;
+				},
+				process.env.SEND_DELAY ? parseInt(process.env.SEND_DELAY) : 3000
+			);
 
 			if (ws.data.url.pathname == '/pub') {
 				pubSockets.push(ws);
@@ -27,9 +36,7 @@ const app = bunExpress({
 			}
 
 			if (ws.data.url.pathname == '/sub') {
-				setTimeout(() => {
-					subSockets.push(ws);
-				}, 500);
+				subSockets.push(ws);
 
 				console.log('new subscriber', ws.data.id);
 			}
@@ -72,7 +79,7 @@ setInterval(() => {
 	// Echo data back to sub sockets
 	if (latestFrame == null) return;
 	for (const sub of subSockets) {
-		sub.send(latestFrame);
+		if (sub.data.ready) sub.send(latestFrame);
 	}
 }, sendInterval);
 
