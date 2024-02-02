@@ -13,7 +13,7 @@ const app = new PIXI.Application({
 	width: 1280,
 	height: 320,
 	resolution: 1,
-	forceCanvas: false
+	forceCanvas: true
 });
 document.body.appendChild(app.view as any);
 
