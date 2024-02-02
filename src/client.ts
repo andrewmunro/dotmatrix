@@ -1,4 +1,3 @@
-// import '@pixi/gif';
 import * as PIXI from './PIXI';
 import { BaseTexture, Container, Program, Renderer, RenderTexture, Sprite } from './PIXI';
 import { dotMatrixFilter, rgbaToRgb565 } from './utils';
