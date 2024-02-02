@@ -14,14 +14,20 @@ using namespace websockets;
 MatrixPanel_I2S_DMA* dma_display;
 WebsocketsClient client;
 
+uint16_t* uint16_data;
+
+void onMessageCallback(WebsocketsMessage message) {
+  uint16_data = (uint16_t *) message.c_str();
+}
+
 void onEventsCallback(WebsocketsEvent event, String data) {
-    if(event == WebsocketsEvent::ConnectionOpened) {
-        Serial.println("Connnection Opened");
-    } else if(event == WebsocketsEvent::ConnectionClosed) {
-        Serial.println("Connnection Closed");
-        delay(2000);
-        ESP.restart();
-    }
+  if(event == WebsocketsEvent::ConnectionOpened) {
+      Serial.println("Connnection Opened");
+  } else if(event == WebsocketsEvent::ConnectionClosed) {
+      Serial.println("Connnection Closed");
+      delay(2000);
+      ESP.restart();
+  }
 }
 
 void setup() {
@@ -63,6 +69,9 @@ void setup() {
       delay(2000);
       ESP.restart();
   }
+
+  // run callback when messages are received
+  client.onMessage(onMessageCallback);
   
   // run callback when events are occuring
   client.onEvent(onEventsCallback);
@@ -83,8 +92,8 @@ void setup() {
 }
 
 void loop() {
-  auto message = client.readBlocking();
-
-  uint16_t* uint16_data = (uint16_t *) message.c_str();
-  dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
+  client.poll();
+  if (uint16_data != nullptr) {
+    dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
+  }
 }
