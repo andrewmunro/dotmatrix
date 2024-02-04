@@ -1,34 +1,26 @@
 #include <stdlib.h>
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <WiFiManager.h>
-#include <ArduinoWebsockets.h>
+#include <WebSocketsClient.h>
+#include <zlib.h>
 
 #define PANEL_WIDTH 64
 #define PANEL_HEIGHT 32
 #define PANELS_NUMBER 2
 #define E_PIN_DEFAULT 18
 
-const char* websockets_connection_string = "ws://rgb.mun.sh/sub"; //Enter server adress
-using namespace websockets;
+WiFiManagerParameter brightness("brightness", "Display Brightness", "128", 40);
+WiFiManagerParameter serverAddress("serverAddress", "Server Address", "rgb.mun.sh", 40);
+WiFiManagerParameter serverPath("serverPath", "Server Path", "/sub", 40);
+WiFiManagerParameter serverPort("serverPort", "Server Port", "80", 40);
+WiFiManagerParameter serverReconnectInterval("serverReconnectInterval", "Server Reconnect Delay", "5000", 40);
 
 MatrixPanel_I2S_DMA* dma_display;
-WebsocketsClient client;
+WebSocketsClient webSocket;
 
-uint16_t* uint16_data;
-
-void onMessageCallback(WebsocketsMessage message) {
-  uint16_data = (uint16_t *) message.c_str();
-}
-
-void onEventsCallback(WebsocketsEvent event, String data) {
-  if(event == WebsocketsEvent::ConnectionOpened) {
-      Serial.println("Connnection Opened");
-  } else if(event == WebsocketsEvent::ConnectionClosed) {
-      Serial.println("Connnection Closed");
-      delay(2000);
-      ESP.restart();
-  }
-}
+uLongf destLen = 8192;
+Bytef destBuffer[8192];
+Bytef resultBuffer[8192];
 
 void setup() {
   Serial.begin(115200);
@@ -50,50 +42,85 @@ void setup() {
   dma_display->clearScreen();
   dma_display->setTextSize(1);
   dma_display->setTextWrap(true);
-  dma_display->setCursor(0,0);
+  dma_display->setCursor(0, 0);
   dma_display->print("Connecting to WIFI...");
   dma_display->setCursor(16, 16);
   dma_display->print("SSID: TrainSignAP");
 
   WiFiManager wm;
+  wm.addParameter(&brightness);
+  wm.addParameter(&serverAddress);
+  wm.addParameter(&serverPath);
+  wm.addParameter(&serverPort);
+  wm.addParameter(&serverReconnectInterval);
+
   bool connected;
   connected = wm.autoConnect("TrainSignAP");
 
-  if(!connected) {
-      Serial.println("Failed to connect");
-      dma_display->clearScreen();
-      dma_display->setTextSize(1);     // size 1 == 8 pixels high
-      dma_display->setTextWrap(true);  // Don't wrap at end of line - will do ourselves
-      dma_display->setCursor(0,0);
-      dma_display->print("Wifi failed :,(");
-      delay(2000);
-      ESP.restart();
-  }
-
-  // run callback when messages are received
-  client.onMessage(onMessageCallback);
-  
-  // run callback when events are occuring
-  client.onEvent(onEventsCallback);
-
-  // Connect to server
-  connected = client.connect(websockets_connection_string);
-  if(!connected) {
-    Serial.println("Connnection Closed");
+  if (!connected) {
+    Serial.println("Failed to connect");
     dma_display->clearScreen();
-    dma_display->setTextSize(1);
-    dma_display->setTextWrap(true);
-    dma_display->setCursor(0,0);
-    dma_display->print("Stream failed :,(");
-
+    dma_display->setTextSize(1);     // size 1 == 8 pixels high
+    dma_display->setTextWrap(true);  // Don't wrap at end of line - will do ourselves
+    dma_display->setCursor(0, 0);
+    dma_display->print("Wifi failed :,(");
     delay(2000);
     ESP.restart();
+  }
+
+  Serial.println("WiFi Connected");
+
+  String brightnessValue = brightness.getValue();
+  int brightnessInt = brightnessValue.toInt();
+  if (brightnessInt < 0) brightnessInt = 0;
+  if (brightnessInt > 255) brightnessInt = 255;
+  dma_display->setBrightness8(brightnessInt);
+
+  String portValue = serverPort.getValue();
+  int port = portValue.toInt();
+  String serverReconnectIntervalValue = serverReconnectInterval.getValue();
+  int serverReconnect = serverReconnectIntervalValue.toInt();
+
+  webSocket.begin(serverAddress.getValue(), port, serverPath.getValue());
+  webSocket.onEvent(webSocketEvent);
+  webSocket.setReconnectInterval(serverReconnect);
+}
+
+void webSocketEvent(WStype_t type, uint8_t* payload, size_t length) {
+  // Decompress the payload
+  switch (type) {
+    case WStype_DISCONNECTED:
+      Serial.println("Disconnected!");
+      memset(resultBuffer, 0, 8192);
+
+      dma_display->clearScreen();
+      dma_display->setTextSize(1);
+      dma_display->setTextWrap(true);
+      dma_display->setCursor(0, 0);
+      dma_display->print("Reconnecting...");
+      break;
+    case WStype_CONNECTED:
+      Serial.printf("Connected to url: %s\n", payload);
+      break;
+    case WStype_BIN: {
+      int result = uncompress(destBuffer, &destLen, payload, length);
+      if (result != Z_OK) {
+        Serial.println("Decompression failed!");
+      }
+
+      // apply result delta to last frame
+      for (int i = 0; i < 8192; i++) {
+        resultBuffer[i] = resultBuffer[i] + destBuffer[i];
+      }
+
+      break;
+    }
   }
 }
 
 void loop() {
-  client.poll();
-  if (uint16_data != nullptr) {
-    dma_display->drawRGBBitmap(0, 0, uint16_data, 128, 32);
+  webSocket.loop();
+  if (webSocket.isConnected()) {
+    dma_display->drawRGBBitmap(0, 0, (uint16_t*) resultBuffer, 128, 32);
   }
 }

@@ -1,6 +1,7 @@
 import { ServerWebSocket, WebSocketServeOptions } from 'bun';
 import bunExpress from 'bun-serve-express';
 import express from 'express';
+import pako from 'pako';
 
 // import { webSocketServer } from './ws/websocketServer';
 process.env.TZ = 'Europe/London';
@@ -8,27 +9,21 @@ process.env.TZ = 'Europe/London';
 type WebSocketData = {
 	url: URL;
 	id: string;
-	ready: boolean;
+	firstSend: boolean;
 };
 
 const randomId = () => {
 	return Math.random().toString(36).substring(2, 7);
 };
 
+let lastFrame: Buffer | null = null;
 let latestFrame: Buffer | null = null;
 
 const app = bunExpress({
 	websocket: {
 		open(ws) {
 			ws.data.id = randomId();
-			ws.data.ready = false;
-
-			setTimeout(
-				() => {
-					ws.data.ready = true;
-				},
-				process.env.SEND_DELAY ? parseInt(process.env.SEND_DELAY) : 3000
-			);
+			ws.data.firstSend = false;
 
 			if (ws.data.url.pathname == '/pub') {
 				pubSockets.push(ws);
@@ -37,7 +32,6 @@ const app = bunExpress({
 
 			if (ws.data.url.pathname == '/sub') {
 				subSockets.push(ws);
-
 				console.log('new subscriber', ws.data.id);
 			}
 		},
@@ -78,8 +72,22 @@ const sendInterval = process.env.SEND_INTERVAL ? parseInt(process.env.SEND_INTER
 setInterval(() => {
 	// Echo data back to sub sockets
 	if (latestFrame == null) return;
+
+	// find delta between last frame and now
+	const deltaFrame = Buffer.alloc(latestFrame.length);
+	for (let i = 0; i < latestFrame.length; i++) {
+		deltaFrame[i] = latestFrame[i] - (lastFrame ? lastFrame[i] : 0);
+	}
+
+	lastFrame = latestFrame;
+
 	for (const sub of subSockets) {
-		if (sub.data.ready) sub.send(latestFrame);
+		if (!sub.data.firstSend) {
+			sub.data.firstSend = true;
+			sub.send(pako.deflate(latestFrame));
+		} else {
+			sub.send(pako.deflate(deltaFrame));
+		}
 	}
 }, sendInterval);
 
@@ -195,7 +203,13 @@ app.get('/api/flights/arrivals', async (req, res) => {
 				date: new Date(fl.scheduled_time)
 			},
 			origin: fl.airport_name,
-			message: fl.message ? fl.message.replace('Expected', 'exp').replace('Landed', 'lnd').replace('Now ', '') : null,
+			message: fl.message
+				? fl.message
+						.replace('Expected', 'exp')
+						.replace('Landed', 'lnd')
+						.replace('Now ', '')
+						.replace(/Diverted.*/, 'Diverted')
+				: null,
 			status: fl.status
 		}))
 		.filter((fl: any) => {
